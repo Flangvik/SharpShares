@@ -1,13 +1,16 @@
 # SharpShares
 Multithreaded C# .NET Assembly to enumerate accessible network shares in a domain
 
-Built upon [djhohnstein's SharpShares](https://github.com/djhohnstein/SharpShares) project
-
+Built upon [mitchmoser's SharpShares](https://github.com/mitchmoser/SharpShares), which was built upon [djhohnstein's SharpShares](https://github.com/djhohnstein/SharpShares) project
+Mainly added the /username /password and /dc args, making it possible to run the tool from a non-domain joined pc!
 ```
 > .\SharpShares.exe help
 
+█▀ █ █ ▄▀█ █▀█ █▀█ █▀ █ █ ▄▀█ █▀█ █▀▀ █▀
+▄█ █▀█ █▀█ █▀▄ █▀▀ ▄█ █▀█ █▀█ █▀▄ ██▄ ▄█
+
 Usage:
-    SharpShares.exe /threads:50 /ldap:servers /ou:"OU=Special Servers,DC=example,DC=local" /filter:SYSVOL,NETLOGON,IPC$,PRINT$ /verbose /outfile:C:\path\to\file.txt
+    SharpShares.exe /username:DOMAIN\USER /DC:192.168.1.1 /password:Passw0rd!123 /threads:50 /ldap:servers /ou:"OU=Special Servers,DC=example,DC=local" /filter:SYSVOL,NETLOGON,IPC$,PRINT$ /verbose /outfile:C:\path\to\file.txt
 
 Optional Arguments:
     /threads  - specify maximum number of parallel threads  (default=25)
@@ -23,6 +26,9 @@ Optional Arguments:
     /filter   - list of comma-separated shares to exclude from enumeration
                 recommended: SYSVOL,NETLOGON,IPC$,print$
     /outfile  - specify file for shares to be appended to instead of printing to std out
+    /username - DOMAIN\USERNAME to be used for auth
+    /password - Password to be used for auth
+    /dc       - Target domain controller IP
     /verbose  - return unauthorized shares
 ```
 
