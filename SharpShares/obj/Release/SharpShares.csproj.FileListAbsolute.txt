@@ -1,0 +1,13 @@
+C:\Users\FlangvikStream\Desktop\SharpShares\SharpShares\bin\Release\SharpShares.exe.config
+C:\Users\FlangvikStream\Desktop\SharpShares\SharpShares\bin\Release\SharpShares.exe
+C:\Users\FlangvikStream\Desktop\SharpShares\SharpShares\bin\Release\SharpShares.pdb
+C:\Users\FlangvikStream\Desktop\SharpShares\SharpShares\bin\Release\DnsClient.xml
+C:\Users\FlangvikStream\Desktop\SharpShares\SharpShares\bin\Release\SimpleImpersonation.xml
+C:\Users\FlangvikStream\Desktop\SharpShares\SharpShares\bin\Release\System.Buffers.xml
+C:\Users\FlangvikStream\Desktop\SharpShares\SharpShares\bin\Release\System.Diagnostics.DiagnosticSource.xml
+C:\Users\FlangvikStream\Desktop\SharpShares\SharpShares\obj\Release\SharpShares.csprojAssemblyReference.cache
+C:\Users\FlangvikStream\Desktop\SharpShares\SharpShares\obj\Release\SharpShares.csproj.CoreCompileInputs.cache
+C:\Users\FlangvikStream\Desktop\SharpShares\SharpShares\obj\Release\SharpShares.csproj.Fody.CopyLocal.cache
+C:\Users\FlangvikStream\Desktop\SharpShares\SharpShares\obj\Release\SharpShares.csproj.CopyComplete
+C:\Users\FlangvikStream\Desktop\SharpShares\SharpShares\obj\Release\SharpShares.exe
+C:\Users\FlangvikStream\Desktop\SharpShares\SharpShares\obj\Release\SharpShares.pdb

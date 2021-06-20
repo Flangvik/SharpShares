@@ -8,7 +8,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
+using SimpleImpersonation;
+using System.Net;
+using DnsClient;
 
 namespace SharpShares.Enums
 {
@@ -115,8 +117,20 @@ namespace SharpShares.Enums
             }
         }
 
-        public static void GetComputerShares(string computer, Utilities.Options.Arguments argumetns)
+        public static void GetComputerShares(string computer, string userSID, List<string> groupIds, Utilities.Options.Arguments argumetns)
         {
+            //Stolen from https://stackoverflow.com/questions/43723467/dns-gethostentry-how-to-specify-dns-server-net
+
+
+            if (string.IsNullOrEmpty(userSID))
+            {
+                var identity = WindowsIdentity.GetCurrent();
+                userSID = identity.User.AccountDomainSid.Value;
+                groupIds = identity.Groups.Select(x => x.Value).ToList();
+
+                
+            }
+
             //Error 53 - network path was not found
             //Error 5 - Access Denied
             string[] errors = { "ERROR=53", "ERROR=5" };
@@ -127,8 +141,8 @@ namespace SharpShares.Enums
                 List<string> writeableShares = new List<string>();
                 List<string> unauthorizedShares = new List<string>();
                 // get current user's identity to compare against ACL of shares
-                WindowsIdentity identity = WindowsIdentity.GetCurrent();
-                string userSID = identity.User.Value;
+
+
                 foreach (SHARE_INFO_1 share in computerShares)// <------------ go to next share -----------+
                 {                                                                                       // |
                     if ((argumetns.filter != null) && (argumetns.filter.Contains(share.shi1_netname.ToString().ToUpper())))  // |
@@ -151,15 +165,17 @@ namespace SharpShares.Enums
                         {
                             //https://stackoverflow.com/questions/130617/how-do-you-check-for-permissions-to-write-to-a-directory-or-file
                             // compare SID of group referenced in ACL to groups the current user is a member of
-                            if (rule.IdentityReference.ToString() == userSID || identity.Groups.Contains(rule.IdentityReference))
+                            // Had to remove this 
+                    
+                            if (rule.IdentityReference.ToString().Contains(userSID) || groupIds.Contains(rule.IdentityReference.Value))
                             {
                                 // plenty of other FileSystem Rights to look for
                                 // https://docs.microsoft.com/en-us/dotnet/api/system.security.accesscontrol.filesystemrights
-                                if ((//rule.FileSystemRights.HasFlag(FileSystemRights.CreateFiles) ||
-                                     //rule.FileSystemRights.HasFlag(FileSystemRights.WriteAttributes) ||
-                                     //rule.FileSystemRights.HasFlag(FileSystemRights.WriteData) ||
-                                     //rule.FileSystemRights.HasFlag(FileSystemRights.WriteExtendedAttributes) ||
-                                     //rule.FileSystemRights.HasFlag(FileSystemRights.CreateDirectories) ||
+                                if ((rule.FileSystemRights.HasFlag(FileSystemRights.CreateFiles) ||
+                                   //  rule.FileSystemRights.HasFlag(FileSystemRights.WriteAttributes) ||
+                                   //  rule.FileSystemRights.HasFlag(FileSystemRights.WriteData) ||
+                                   //  rule.FileSystemRights.HasFlag(FileSystemRights.WriteExtendedAttributes) ||
+                                  //   rule.FileSystemRights.HasFlag(FileSystemRights.CreateDirectories) ||
                                     rule.FileSystemRights.HasFlag(FileSystemRights.Write)) && rule.AccessControlType == AccessControlType.Allow)
                                 {
                                     writeableShares.Add(share.shi1_netname);
@@ -246,10 +262,12 @@ namespace SharpShares.Enums
                         }
                     }
                 }
+
             }
+
             Utilities.Status.currentCount += 1;
         }
-        
+
         public static ReaderWriterLockSlim _readWriteLock = new ReaderWriterLockSlim();
 
         public static void WriteToFileThreadSafe(string text, string path)
@@ -271,18 +289,53 @@ namespace SharpShares.Enums
                 _readWriteLock.ExitWriteLock();
             }
         }
-        public static void GetAllShares(List<string> computers, Utilities.Options.Arguments arguments)
+        public static void GetAllShares(List<string> computers, string userSid, List<string> groupIds, Utilities.Options.Arguments arguments)
         {
             Console.WriteLine("[+] Starting share enumeration against {0} hosts\n", computers.Count);
-            //https://blog.danskingdom.com/limit-the-number-of-c-tasks-that-run-in-parallel/
             var threadList = new List<Action>();
-            foreach (string computer in computers)
+
+            if (string.IsNullOrEmpty(userSid))
             {
-                threadList.Add(() => GetComputerShares(computer, arguments));
+                foreach (string computer in computers)
+                {
+
+                    //GetComputerShares(computer, userSid, arguments);
+                    threadList.Add(() => GetComputerShares(computer, userSid, groupIds, arguments));
+                }
+
             }
+            else
+            {
+                IPEndPoint endpoint = new IPEndPoint(IPAddress.Parse(arguments.dc), 53);
+                LookupClient lookup = new LookupClient(endpoint);
+
+                var computerIpList = new List<string>() { };
+
+                foreach (var computerName in computers)
+                {
+                    IPHostEntry hostEntry = lookup.GetHostEntry(computerName);
+                    computerIpList.Add(hostEntry.AddressList[0].ToString());
+                }
+
+                UserCredentials credentials = new UserCredentials(arguments.userame.Split('\\')[0], arguments.userame.Split('\\')[1], arguments.password);
+
+                Impersonation.RunAsUser(credentials, LogonType.NewCredentials, (x) =>
+                {
+
+                    foreach (string computer in computerIpList)
+                    {
+                        //GetComputerShares(computer, userSid, arguments);
+                        threadList.Add(() => GetComputerShares(computer, userSid, groupIds, arguments));
+                    }
+
+                });
+
+            }
+
             var options = new ParallelOptions { MaxDegreeOfParallelism = arguments.threads };
             Parallel.Invoke(options, threadList.ToArray());
             Console.WriteLine("[+] Finished Enumerating Shares");
+
         }
 
     }

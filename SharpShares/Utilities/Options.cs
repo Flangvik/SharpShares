@@ -21,6 +21,9 @@ namespace SharpShares.Utilities
             public string ou = null;
             public string outfile = null;
             public string targets = null;
+            public string userame = null;
+            public string password = null;
+            public string dc = null;
         }
         public static Dictionary<string, string[]> ParseArgs(string[] args)
         {
@@ -73,6 +76,22 @@ namespace SharpShares.Utilities
             {
                 arguments.targets = parsedArgs["/targets"][0];
             }
+
+            if (parsedArgs.ContainsKey("/username"))
+            {
+                arguments.userame = parsedArgs["/username"][0];
+            }
+
+            if (parsedArgs.ContainsKey("/password"))
+            {
+                arguments.password = parsedArgs["/password"][0];
+            }
+
+            if (parsedArgs.ContainsKey("/dc"))
+            {
+                arguments.dc = parsedArgs["/dc"][0];
+            }
+
             if (parsedArgs.ContainsKey("/threads"))
             {
                 arguments.threads = Convert.ToInt32(parsedArgs["/threads"][0]);
@@ -169,6 +188,9 @@ Optional Arguments:
     /filter   - list of comma-separated shares to exclude from enumeration
                 recommended: SYSVOL,NETLOGON,IPC$,print$
     /outfile  - specify file for shares to be appended to instead of printing to std out 
+    /username - DOMAIN\USERNAME to be used for auth
+    /password - Password to be used for auth
+    /dc       - Target domain controller IP
     /verbose  - return unauthorized shares
 ";
             Console.WriteLine(usageString);
