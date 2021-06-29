@@ -10,9 +10,7 @@ namespace SharpShares
 
         static void Main(string[] args)
         {
-           args = "/username:LEGITCORP.NET\\Administrator /password:Passw0rd!123 /ldap:dc /dc:192.168.58.111".Split(' ');
-            //   args = "/ldap:dc".Split(' ');
-
+     
             List<string> hosts = new List<string>();
             var parsedArgs = Utilities.Options.ParseArgs(args);
             Utilities.Options.Arguments arguments = Utilities.Options.ArgumentValues(parsedArgs);
